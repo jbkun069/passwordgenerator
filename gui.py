@@ -4,6 +4,24 @@ import random
 import string
 import pyperclip
 
+# Define color schemes for light/dark modes
+THEMES = {
+    "light": {
+        "background": "#FFFFFF",
+        "foreground": "#000000",
+        "button_bg": "#F0F0F0",
+        "entry_bg": "#FFFFFF",
+        "entry_fg": "#000000",
+    },
+    "dark": {
+        "background": "#2D2D2D",
+        "foreground": "#FFFFFF",
+        "button_bg": "#3D3D3D",
+        "entry_bg": "#3D3D3D",
+        "entry_fg": "#FFFFFF",
+    }
+}
+
 # Function to generate a password
 def generate_password(length=12, use_uppercase=True, use_digits=True, use_symbols=True):
     lowercase = string.ascii_lowercase  # Always include lowercase
@@ -28,6 +46,34 @@ def build_gui():
     use_digits = tk.BooleanVar(value=True)
     use_symbols = tk.BooleanVar(value=True)
     generated_password = tk.StringVar()
+
+    # Track the current theme
+    current_theme = tk.StringVar(value="light")
+
+    # Function to toggle themes
+    def toggle_theme():
+        new_theme = "dark" if current_theme.get() == "light" else "light"
+        current_theme.set(new_theme)
+        apply_theme(new_theme)
+
+    # Apply the selected theme
+    def apply_theme(theme):
+        colors = THEMES[theme]
+        style = ttk.Style()
+
+        # Configure main window background
+        window.configure(bg=colors["background"])
+
+        # Configure ttk styles
+        style.theme_use("clam")  # A theme that allows customization
+        style.configure(".", background=colors["background"], foreground=colors["foreground"])
+        style.configure("TButton", background=colors["button_bg"])
+        style.configure("TEntry", fieldbackground=colors["entry_bg"], foreground=colors["entry_fg"])
+        style.configure("TCheckbutton", background=colors["background"], foreground=colors["foreground"])
+
+        # Update all widgets
+        for widget in window.winfo_children():
+            widget.update()
 
     # Function to handle password generation
     def on_generate():
@@ -75,6 +121,15 @@ def build_gui():
     length_entry = ttk.Entry(frame, textvariable=password_length, width=5)
     length_entry.grid(row=0, column=1, sticky="w")
 
+    # Theme Toggle Button
+    theme_btn = ttk.Button(
+        frame,
+        text="🌞" if current_theme.get() == "light" else "🌙",
+        command=toggle_theme,
+        width=3
+    )
+    theme_btn.grid(row=0, column=2, padx=10)
+
     # Checkboxes
     ttk.Checkbutton(frame, text="Uppercase Letters", variable=use_uppercase).grid(row=1, column=0, sticky="w")
     ttk.Checkbutton(frame, text="Digits", variable=use_digits).grid(row=2, column=0, sticky="w")
@@ -91,6 +146,9 @@ def build_gui():
     # Copy Button
     copy_btn = ttk.Button(frame, text="Copy to Clipboard", command=on_copy)
     copy_btn.grid(row=5, column=1, padx=10)
+
+    # Apply initial theme
+    apply_theme(current_theme.get())
 
     # Run the application
     window.mainloop()
